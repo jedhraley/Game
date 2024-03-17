@@ -37,23 +37,6 @@
     <isaspell>true</isaspell>
     <isaweapon>false</isaweapon>
     <isusable>false</isusable>
-    <id>802</id>
-    <cost>1000</cost>
-    <val1>90</val1>
-    <val2>0</val2>
-    <val3>0</val3>
-    <val4>0</val4>
-    <val5>0</val5>
-    <shopdesc>Заклинание - Пиробласт: Наносит {1} урона, опустошая вашу ману
-Требует маны: {1}% манапула
-Стоимость: {0} монет 
-</shopdesc>
-  </Item>
-  <Item>
-    <bought>false</bought>
-    <isaspell>true</isaspell>
-    <isaweapon>false</isaweapon>
-    <isusable>false</isusable>
     <id>803</id>
     <cost>500</cost>
     <val1>50</val1>

@@ -8,8 +8,8 @@
   <hp>100</hp>
   <maxmp>100</maxmp>
   <mp>100</mp>
-  <atk>5</atk>
+  <atk>10</atk>
   <spellamp>1</spellamp>
-  <money>5000</money>
+  <money>1900</money>
   <food>false</food>
 </Hero>

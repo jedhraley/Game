@@ -149,7 +149,7 @@ namespace Game
         {
             if (!Directory.Exists("..\\..\\..\\save\\"))
             {
-                Directory.CreateDirectory("..\\..\\..\\save\\");
+                _ = Directory.CreateDirectory("..\\..\\..\\save\\");
             }
         }
         public static void SerializeAll(bool init, Hero hero, List<Item> items, List<Spell> spells)
@@ -225,7 +225,7 @@ namespace Game
             string savepath = "..\\..\\..\\save\\";
             if (!Directory.Exists(savepath))
             {
-                Directory.CreateDirectory(savepath);
+                _ = Directory.CreateDirectory(savepath);
             }
 
             XmlSerializer sHero = new XmlSerializer(typeof(Hero));
@@ -347,7 +347,7 @@ namespace Game
             Console.Clear();
             Application app = new Application();
             UserControl1 u = new UserControl1();
-            app.Run(u);
+            _ = app.Run(u);
         }
     }
 }

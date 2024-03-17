@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 using System.Timers;
 using static Game.Actions;
 using static Game.Animations;
-using static Game.Serializations;
 using static Game.Maine;
+using static Game.Serializations;
 using static Program;
 
 namespace Game
@@ -19,7 +19,7 @@ namespace Game
         public static void Adventure(Hero hero, List<Spell> spells)
         {
             _consoleCtrlHandler += s => { SerializeAll(hero, spells); return true; };
-            SetConsoleCtrlHandler(_consoleCtrlHandler, true);
+            _ = SetConsoleCtrlHandler(_consoleCtrlHandler, true);
             Console.Clear();
             Random rnd = new Random();
             int roll = rnd.Next(1, 11);
@@ -67,7 +67,7 @@ namespace Game
         public static void Shop(Hero hero, List<Item> items, List<Spell> spells)
         {
             _consoleCtrlHandler += s => { SerializeAll(hero, items, spells); return true; };
-            SetConsoleCtrlHandler(_consoleCtrlHandler, true);
+            _ = SetConsoleCtrlHandler(_consoleCtrlHandler, true);
             Console.Clear();
             Console.WriteLine(" ____________________   \r\n│_____│_МАГАЗИН_│____│  \r\n  │         ♫     │     \r\n  │    ;\\_;\\   ♫  │     \r\n  │  ♫ (■▾❍ )     │     \r\n  │    /|☦=|\\    │     \r\n  │  ----------   │     \r\n  │   │      │    │     \r\n  │   │      │    │\\\\ ");
             Print($"Торговец: Приветствую тебя, {hero.name}, чего ты желаешь приобрести на этот раз?");
@@ -90,7 +90,7 @@ namespace Game
                     {
                         hero.money -= items[sel - 1].cost;
                         items[sel - 1].ApplyItem(hero, spells);
-                        items.Remove(items[sel - 1]);
+                        _ = items.Remove(items[sel - 1]);
                         Print("Торговец: Поздравляю с покупкой!\n");
                         System.Threading.Thread.Sleep(1000);
                         Shop(hero, items, spells);
@@ -120,7 +120,7 @@ namespace Game
         private static void ShopReturn(Hero hero, List<Item> items, List<Spell> spells)
         {
             _consoleCtrlHandler += s => { SerializeAll(hero, items, spells); return true; };
-            SetConsoleCtrlHandler(_consoleCtrlHandler, true);
+            _ = SetConsoleCtrlHandler(_consoleCtrlHandler, true);
             Print("Вернуться в магазин? Нажмите любую клавишу, чтобы не возвращаться.\n");
             Timer timer = new Timer(5000) { AutoReset = false, Enabled = true };
             timer.Elapsed += CaseReturn; // бросит нажатие F24 после 5 сек
@@ -144,7 +144,7 @@ namespace Game
         public static void CaseReturn(object src, ElapsedEventArgs e) // метод для броска нажатия F24 чтобы выйти из ReadKey когда таймер прокнет его
         {
             IntPtr hWnd = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
-            PostMessage(hWnd, WM_KEYDOWN, VK_F24, 0);
+            _ = PostMessage(hWnd, WM_KEYDOWN, VK_F24, 0);
             return;
         }
         public static void Profile(Hero hero, List<Spell> spells)
@@ -173,7 +173,7 @@ namespace Game
                 }
 
             }
-            Console.ReadKey(true);
+            _ = Console.ReadKey(true);
             Console.Clear();
         }
         public static void Useables(Enemy enemy, Hero hero, List<Spell> spells)

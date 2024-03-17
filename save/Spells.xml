@@ -11,7 +11,7 @@
     <dmg>10</dmg>
   </Spell>
   <Spell>
-    <unlocked>false</unlocked>
+    <unlocked>true</unlocked>
     <anyclass>true</anyclass>
     <heroClass>Маг</heroClass>
     <name>Пиробласт</name>
@@ -21,7 +21,7 @@
     <dmg>100</dmg>
   </Spell>
   <Spell>
-    <unlocked>false</unlocked>
+    <unlocked>true</unlocked>
     <anyclass>true</anyclass>
     <heroClass>Маг</heroClass>
     <name>Сжатая кровь</name>

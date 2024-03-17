@@ -61,22 +61,21 @@ namespace Game.Properties {
         }
         
         /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        ///   Поиск локализованного ресурса типа System.IO.UnmanagedMemoryStream, аналогичного System.IO.MemoryStream.
         /// </summary>
-        internal static System.Drawing.Bitmap itto {
+        internal static System.IO.UnmanagedMemoryStream DDLC_Yuri_sdeath {
             get {
-                object obj = ResourceManager.GetObject("itto", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ResourceManager.GetStream("DDLC_Yuri_sdeath", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        ///   Поиск локализованного ресурса типа System.Byte[].
         /// </summary>
-        internal static System.Drawing.Bitmap photo_2024_02_22_10_21_15 {
+        internal static byte[] fingies {
             get {
-                object obj = ResourceManager.GetObject("photo_2024-02-22_10-21-15", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                object obj = ResourceManager.GetObject("fingies", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }
