@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfSpell xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Spell>
+    <unlocked>true</unlocked>
+    <anyclass>true</anyclass>
+    <heroClass>Маг</heroClass>
+    <name>Огненный шар</name>
+    <id>801</id>
+    <mpcost>10</mpcost>
+    <hpcost>0</hpcost>
+    <dmg>10</dmg>
+  </Spell>
+  <Spell>
+    <unlocked>false</unlocked>
+    <anyclass>true</anyclass>
+    <heroClass>Маг</heroClass>
+    <name>Пиробласт</name>
+    <id>802</id>
+    <mpcost>90</mpcost>
+    <hpcost>0</hpcost>
+    <dmg>100</dmg>
+  </Spell>
+  <Spell>
+    <unlocked>false</unlocked>
+    <anyclass>true</anyclass>
+    <heroClass>Маг</heroClass>
+    <name>Сжатая кровь</name>
+    <id>803</id>
+    <mpcost>25</mpcost>
+    <hpcost>10</hpcost>
+    <dmg>50</dmg>
+  </Spell>
+</ArrayOfSpell>
