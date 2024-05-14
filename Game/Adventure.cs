@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Timers;
 using static Game.Actions;
 using static Game.Animations;
@@ -10,15 +11,15 @@ using static Program;
 
 namespace Game
 {
-    public class Misc
-    {
-        public static void Save()
-        {
 
-        }
-        public static void Adventure(Hero hero, List<Spell> spells)
+    internal static class Misc
+    {
+        private static int keycount = 0;
+
+        private static bool timerelapsed = false;
+        internal static void Adventure(Hero hero, List<Spell> spells)
         {
-            _consoleCtrlHandler += s => { SerializeAll(hero, spells); return true; };
+            _consoleCtrlHandler += _ => { SerializeAll(hero, items, spells); Environment.Exit(0x1); return false; };
             _ = SetConsoleCtrlHandler(_consoleCtrlHandler, true);
             Console.Clear();
             Random rnd = new Random();
@@ -50,11 +51,7 @@ namespace Game
                             break;
                         case 2:
                             Console.Clear();
-                            Enemy enemy = new Enemy
-                            {
-                                maxhp = 50 + (hero.exp * 0.5),
-                                hp = 50 + (hero.exp * 0.5)
-                            };
+                            Enemy enemy = new Enemy(Math.Ceiling(50 + (hero.exp * 0.5)));
                             Battle(enemy, hero, spells);
                             break;
 
@@ -64,10 +61,10 @@ namespace Game
             }
         }
         // добавить очевидные способы выхода из магаза
-        public static void Shop(Hero hero, List<Item> items, List<Spell> spells)
+        internal static void Shop(Hero hero, List<Item> items, List<Spell> spells)
         {
-            _consoleCtrlHandler += s => { SerializeAll(hero, items, spells); return true; };
-            _ = SetConsoleCtrlHandler(_consoleCtrlHandler, true);
+            _consoleCtrlHandler += _ => { SerializeAll(hero, items, spells); Environment.Exit(0x1); return false; };
+            SetConsoleCtrlHandler(_consoleCtrlHandler, true);
             Console.Clear();
             Console.WriteLine(" ____________________   \r\n│_____│_МАГАЗИН_│____│  \r\n  │         ♫     │     \r\n  │    ;\\_;\\   ♫  │     \r\n  │  ♫ (■▾❍ )     │     \r\n  │    /|☦=|\\    │     \r\n  │  ----------   │     \r\n  │   │      │    │     \r\n  │   │      │    │\\\\ ");
             Print($"Торговец: Приветствую тебя, {hero.name}, чего ты желаешь приобрести на этот раз?");
@@ -77,7 +74,7 @@ namespace Game
                 if (!item.bought)
                 {
                     count++;
-                    string str = string.Format($"{count}) " + item.shopdesc, item.cost, item.val1, item.val2, item.val3);
+                    string str = string.Format($"{count}) " + item.shopdesc, item.cost, item.val1, item.val2, item.val3, item.val4, item.val5);
                     Console.WriteLine(str);
                 }
             }
@@ -116,13 +113,37 @@ namespace Game
                 Console.Clear();
             }
         }
-
+        private static void ApplyItem(this Item item, Hero hero, List<Spell> spells)
+        {
+            hero.money -= item.cost;
+            item.bought = true;
+            if (item.isusable) // 1 штука
+            {
+                hero.food = true;
+            }
+            if (item.isaspell) // 2 штуки
+            {
+                foreach (Spell spell in spells)
+                {
+                    if (item.id == spell.id && ((hero.heroClass == spell.heroClass) | spell.anyclass))
+                    {
+                        spell.unlocked = true;
+                        return;
+                    }
+                }
+            }
+            if (item.isaweapon) // 1 штука....
+            {
+                hero.atk += 5;
+            }
+            return;
+        }
         private static void ShopReturn(Hero hero, List<Item> items, List<Spell> spells)
         {
-            _consoleCtrlHandler += s => { SerializeAll(hero, items, spells); return true; };
-            _ = SetConsoleCtrlHandler(_consoleCtrlHandler, true);
+            _consoleCtrlHandler += _ => { SerializeAll(hero, items, spells); Environment.Exit(0x1); return false; };
+            SetConsoleCtrlHandler(_consoleCtrlHandler, true);
             Print("Вернуться в магазин? Нажмите любую клавишу, чтобы не возвращаться.\n");
-            Timer timer = new Timer(5000) { AutoReset = false, Enabled = true };
+            System.Timers.Timer timer = new System.Timers.Timer(5000) { AutoReset = false, Enabled = true };
             timer.Elapsed += CaseReturn; // бросит нажатие F24 после 5 сек
             ConsoleKey str = Console.ReadKey(true).Key;
             if (str.Equals(ConsoleKey.F24)) // F24 для того чтобы не могли дотянуться ручками когда хотят выйти
@@ -139,15 +160,15 @@ namespace Game
         [DllImport("User32.Dll", EntryPoint = "PostMessageA")]
         private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam); // бросает кнопки в лицо приложению
 
-        const int VK_F24 = 0x87;
-        const int WM_KEYDOWN = 0x100;
-        public static void CaseReturn(object src, ElapsedEventArgs e) // метод для броска нажатия F24 чтобы выйти из ReadKey когда таймер прокнет его
+        private const int VK_F24 = 0x87;
+        private const int WM_KEYDOWN = 0x100;
+        private static void CaseReturn(object src, ElapsedEventArgs e) // метод для броска нажатия F24 чтобы выйти из ReadKey когда таймер прокнет его
         {
             IntPtr hWnd = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
             _ = PostMessage(hWnd, WM_KEYDOWN, VK_F24, 0);
             return;
         }
-        public static void Profile(Hero hero, List<Spell> spells)
+        internal static void Profile(Hero hero, List<Spell> spells)
         {
             Console.Clear();
             SerializeAll(hero, spells);
@@ -173,10 +194,10 @@ namespace Game
                 }
 
             }
-            _ = Console.ReadKey(true);
+            Console.ReadKey(true);
             Console.Clear();
         }
-        public static void Useables(Enemy enemy, Hero hero, List<Spell> spells)
+        internal static void Useables(Enemy enemy, Hero hero, List<Spell> spells)
         {
 
             if (hero.food)
@@ -186,6 +207,9 @@ namespace Game
             else
             {
                 Print("У вас нет расходников, зря зря...");
+                Print("Вы потратили ход, а враг наносит критический удар в спину.");
+                hero.hp -= enemy.atk * 10;
+                Battle(enemy, hero, spells);
             }
             bool parsed = int.TryParse(Console.ReadLine(), out int sel);
             if (parsed == true)
@@ -193,18 +217,9 @@ namespace Game
                 switch (sel)
                 {
                     case 1:
-                        if (hero.food)
-                        {
-                            hero.hp += 20;
-                            hero.hp -= enemy.atk;
-                            Battle(enemy, hero, spells);
-                        }
-                        else
-                        {
-                            Print("Вы потратили ход, а враг наносит критический удар в спину.");
-                            hero.hp -= enemy.atk * 10;
-                            Battle(enemy, hero, spells);
-                        }
+                        hero.hp += 20;
+                        hero.hp -= enemy.atk;
+                        Battle(enemy, hero, spells);
                         break;
                     default:
                         Print("Вы потратили ход, а враг наносит критический удар в спину.");
@@ -219,39 +234,97 @@ namespace Game
                 Print("Пиши не гадости, а циферку");
             }
         }
-
-        public static void Flee()
+        
+        internal static bool Flee()
         {
             Random rand = new Random();
             int r = rand.Next(1, 11);
             if (r <= 3)
             {
                 Print("Вы успешно убежали.");
+                return true;
             }
-            else if (r >= 4 & r <= 6)
+            else if (r > 3 & r <= 6)
             {
-                Print("");
+                Print("сделаю последствия тут");
+                return true;
             }
-            else if (r >= 7)
-            {
-
-            }
+            return false;
         }
-        public static void Spellcast(Enemy enemy, Hero hero, List<Spell> spells, Spell usedspell)
+        internal static void Spellcast(this Spell spell, Enemy enemy, Hero hero)
         {
-            foreach (Spell spell in spells)
+            if (spell.unlocked & hero.mp >= spell.mpcost & hero.hp >= spell.hpcost & spell.id >= 801 & spell.id <= 803)
             {
-                if (spell.unlocked & hero.mp >= spell.mpcost & hero.hp >= spell.hpcost & spell.id == usedspell.id)
+                Console.Clear();
+                hero.mp -= spell.mpcost;
+                hero.hp -= spell.hpcost;
+                enemy.hp -= spell.dmg * hero.spellamp;
+                AnimSpell(enemy, spell);
+            }
+            else if (spell.unlocked & hero.mp >= spell.mpcost & hero.hp >= spell.hpcost & spell.id == 804)
+            {
+                Console.Clear();
+                keycount = 0;
+                timerelapsed = false;
+                hero.mp -= spell.mpcost;
+                hero.hp -= spell.hpcost;
+                System.Timers.Timer timer = new System.Timers.Timer(6000) { AutoReset = false, Enabled = false };
+                timer.Elapsed += EndKeyCount; // бросит нажатие F24 после 10 сек
+                Thread.Sleep(300);
+                Random rand = new Random();
+                while (!timerelapsed)
                 {
-                    Console.Clear();
-                    hero.mp -= spell.mpcost;
-                    hero.hp -= spell.hpcost;
-                    enemy.hp -= spell.dmg * hero.spellamp;
-                    AnimSpell(enemy, usedspell);
-                    return;
+                    if (!timer.Enabled) timer.Enabled = true;
+                    int randkey = rand.Next(65, 91);
+                    ConsoleKey chosenkey = (ConsoleKey)randkey;
+                    Console.WriteLine($"Выбрана клавиша {chosenkey}!");
+                    ConsoleKey str = Console.ReadKey(true).Key;
+                    if (str.Equals(ConsoleKey.F24) | str.Equals(ConsoleKey.Pause)) // F24 для того чтобы не могли дотянуться ручками
+                    {
+                        timer.Stop();
+                        break;
+                    }
+                    else if (str.Equals(chosenkey))
+                    {
+                        keycount++;
+                    }
+                }
+                double dmg = hero.atk * 1.5 * keycount;
+                Console.WriteLine($"Вы натыкали {dmg} урона!");
+                Thread.Sleep(1000);
+                enemy.hp -= dmg;
+                int frametime = 300;
+                int animcount = 3;
+                if (keycount != 0)
+                {
+                    frametime = (int)Math.Ceiling((double)(5000 / keycount / 6));
+                    animcount += (keycount / 3);
+                }
+                for (int i = 1; i <= animcount; i++)
+                {
+                    if (i == 1)
+                    {
+                        StartWhirl(frametime);
+                    }
+                    else if (i > 1 & i < animcount)
+                    {
+                        Whirl(frametime);
+                    }
+                    else if (i == animcount)
+                    {
+                        EndWhirl(frametime);
+                    }
+                }
+                if (enemy.hp <= 0)
+                {
+                    EnemyDeathVar1();
                 }
             }
-            Console.WriteLine("Заклинание недоступно.");
+            else Console.WriteLine("Заклинание недоступно.");
+        }
+        private static void EndKeyCount(object o, ElapsedEventArgs e)
+        {
+            timerelapsed = true;
         }
     }
 }

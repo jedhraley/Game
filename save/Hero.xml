@@ -3,13 +3,13 @@
   <heroClass>Маг</heroClass>
   <name>Итта</name>
   <lvl>1</lvl>
-  <exp>0</exp>
+  <exp>5</exp>
   <maxhp>100</maxhp>
   <hp>100</hp>
   <maxmp>100</maxmp>
-  <mp>100</mp>
-  <atk>10</atk>
+  <mp>1</mp>
+  <atk>5</atk>
   <spellamp>1</spellamp>
-  <money>1900</money>
+  <money>5036</money>
   <food>false</food>
 </Hero>

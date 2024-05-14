@@ -5,6 +5,7 @@ using System.Threading;
 using System.Windows;
 using System.Xml.Serialization;
 using static Game.Actions;
+using static System.IO.Directory;
 
 namespace Game
 {
@@ -18,24 +19,44 @@ namespace Game
     public class Hero
     {
         public HeroClass heroClass;
-        public string name = "Итта";
-        public byte lvl = 1;
-        public double exp = 0;
-        public double maxhp = 100;
-        public double hp = 100;
-        public double maxmp = 100;
-        public double mp = 100;
-        public double atk = 5;
-        public double spellamp = 1;
-        public int money = 5000;
-        public bool food = false;
+        public string name;
+        public byte lvl;
+        public double exp;
+        public double maxhp;
+        public double hp;
+        public double maxmp;
+        public double mp;
+        public double atk;
+        public double spellamp;
+        public int money;
+        public bool food;
+        public Hero() 
+        {
+            name = "Итта";
+            lvl = 1;
+            exp = 0;
+            maxhp = 100;
+            hp = 100;
+            maxmp = 100;
+            mp = 100;
+            atk = 5;
+            spellamp = 1;
+            money = 5000;
+            food = false;
+
+        }
     }
     [Serializable]
     public class Enemy
     {
-        public double maxhp = 50;
-        public double hp = 50;
-        public double atk = 3;
+        internal double maxhp = 50;
+        internal double hp = 50;
+        internal double atk = 3;
+        internal Enemy(double starthp)
+        {
+            maxhp = starthp;
+            hp = starthp;
+        }
     }
     [Serializable]
     public class Item
@@ -54,14 +75,14 @@ namespace Game
         public bool anyclass = true;
         public HeroClass heroClass;
         public string name;
-        public int id;
+        public ushort id;
         public int mpcost;
         public int hpcost = 0;
         public int dmg = 0;
     }
-    public class Init
+    internal class Init
     {
-        public static List<Spell> DefaultSpells()
+        internal static List<Spell> DefaultSpells()
         {
             Spell spell1 = new Spell
             {
@@ -92,9 +113,18 @@ namespace Game
                 hpcost = 10,
                 dmg = 50
             };
-            return new List<Spell> { spell1, spell2, spell3 };
+            Spell spell4 = new Spell
+            {
+                heroClass = HeroClass.Маг,
+                id = 804,
+                unlocked = true,
+                name = "Вихрь",
+                mpcost = 33,
+                dmg = 5
+            };
+            return new List<Spell> { spell1, spell2, spell3, spell4 };
         }
-        public static List<Item> DefaultItems()
+        internal static List<Item> DefaultItems()
         {
             Item item1 = new Item
             {
@@ -122,8 +152,9 @@ namespace Game
                 id = 802,
                 cost = 1000,
                 val1 = 90,
-                shopdesc = "Заклинание - Пиробласт: Наносит {1} урона, опустошая вашу ману\n" +
-                "Требует маны: {1}% манапула\n" +
+                val2 = 100,
+                shopdesc = "Заклинание - Пиробласт: Наносит {2} урона, опустошая вашу ману\n" +
+                "Требует маны: {1} маны\n" +
                 "Стоимость: {0} монет \n"
             };
             Item item4 = new Item
@@ -143,16 +174,17 @@ namespace Game
             return new List<Item>() { item1, item2, item3, item4 };
         }
     }
-    public class Serializations
+    internal class Serializations
     {
-        public static void SaveDirCheck()
+        internal static string rootgamepath = GetParent(GetParent(GetParent(GetCurrentDirectory()).FullName).FullName).FullName;
+        internal static void SaveDirCheck()
         {
-            if (!Directory.Exists("..\\..\\..\\save\\"))
+            if (!Exists($"{rootgamepath}\\save\\"))
             {
-                _ = Directory.CreateDirectory("..\\..\\..\\save\\");
+                CreateDirectory($"{rootgamepath}\\save\\");
             }
         }
-        public static void SerializeAll(bool init, Hero hero, List<Item> items, List<Spell> spells)
+        internal static void SerializeAll(Hero hero, List<Item> items, List<Spell> spells, bool init = false)
         {
             Console.Clear();
             SaveDirCheck();
@@ -160,16 +192,7 @@ namespace Game
             Serialize(init, spells);
             Serialize(init, hero);
         }
-        public static void SerializeAll(Hero hero, List<Item> items, List<Spell> spells)
-        {
-            Console.Clear();
-            bool init = false;
-            SaveDirCheck();
-            Serialize(init, items);
-            Serialize(init, spells);
-            Serialize(init, hero);
-        }
-        public static void SerializeAll(Hero hero, List<Spell> spells)
+        internal static void SerializeAll(Hero hero, List<Spell> spells)
         {
             Console.Clear();
             bool init = false;
@@ -177,7 +200,7 @@ namespace Game
             Serialize(init, spells);
             Serialize(init, hero);
         }
-        public static void SerializeAll(Hero hero, List<Item> items)
+        internal static void SerializeAll(Hero hero, List<Item> items)
         {
             Console.Clear();
             bool init = false;
@@ -186,46 +209,46 @@ namespace Game
             Serialize(init, hero);
         }
 
-        static void Serialize(bool init, List<Spell> spells)
+        private static void Serialize(bool init, List<Spell> spells)
         {
-            if (!File.Exists("..\\..\\..\\save\\Spells.xml") | !init)
+            if (!File.Exists($"{rootgamepath}\\save\\Spells.xml") | !init)
             {
                 XmlSerializer sSpell = new XmlSerializer(typeof(List<Spell>));
-                using (TextWriter tSpell = new StreamWriter("..\\..\\..\\save\\Spells.xml"))
+                using (TextWriter tSpell = new StreamWriter($"{rootgamepath}\\save\\Spells.xml"))
                 {
                     sSpell.Serialize(tSpell, spells);
                 }
             }
 
         }
-        static void Serialize(bool init, List<Item> items)
+        private static void Serialize(bool init, List<Item> items)
         {
-            if (!File.Exists("..\\..\\..\\save\\Items.xml") | !init)
+            if (!File.Exists($"{rootgamepath}\\save\\Items.xml") | !init)
             {
                 XmlSerializer sItem = new XmlSerializer(typeof(List<Item>));
-                using (TextWriter tItem = new StreamWriter("..\\..\\..\\save\\Items.xml"))
+                using (TextWriter tItem = new StreamWriter($"{rootgamepath}\\save\\Items.xml"))
                 {
                     sItem.Serialize(tItem, items);
                 }
             }
         }
 
-        static void Serialize(bool init, Hero hero)
+        private static void Serialize(bool init, Hero hero)
         {
-            if (!File.Exists("..\\..\\..\\save\\Hero.xml") | !init)
+            if (!File.Exists($"{rootgamepath}\\save\\Hero.xml") | !init)
             {
                 XmlSerializer sHero = new XmlSerializer(typeof(Hero));
-                TextWriter tHero = new StreamWriter("..\\..\\..\\save\\Hero.xml");
+                TextWriter tHero = new StreamWriter($"{rootgamepath}\\save\\Hero.xml");
                 sHero.Serialize(tHero, hero);
                 tHero.Close();
             }
         }
-        public static (Hero, List<Item>, List<Spell>) Deserialize()
+        internal static (Hero, List<Item>, List<Spell>) Deserialize()
         {
-            string savepath = "..\\..\\..\\save\\";
-            if (!Directory.Exists(savepath))
+            string savepath = $"{rootgamepath}\\save\\";
+            if (!Exists(savepath))
             {
-                _ = Directory.CreateDirectory(savepath);
+                CreateDirectory(savepath);
             }
 
             XmlSerializer sHero = new XmlSerializer(typeof(Hero));
@@ -243,28 +266,35 @@ namespace Game
             TextReader rSpell = new StreamReader($"{savepath}Spells.xml");
             List<Spell> spells = (List<Spell>)sSpell.Deserialize(rSpell);
             rSpell.Close();
+            spells = utterAbominations.CheckSpells(spells, hero);
 
             (Hero, List<Item>, List<Spell>) result = (hero, items, spells);
             return result;
         }
-        public static void DeleteSave()
+        internal static void DeleteSave()
         {
             Console.Clear();
-            Print("Уверен?? Меряемся хуями, если твой короче, то таки удаляем сохранение", 30);
-            if (int.Parse(Console.ReadLine()) < 18)
+            Print("Уверен?? Меряемся хуями, если твой короче, то таки удаляем сохранение");
+            int i = int.Parse(Console.ReadLine());
+            if (i < 18)
             {
                 Console.WriteLine("Сохранение удалено, прости");
-                Directory.Delete("..\\..\\..\\save\\", true);
+                Delete("..\\..\\..\\save\\", true);
             }
             else
             {
                 Console.WriteLine("Живи еще один день...");
             }
+            using (StreamWriter stream = new StreamWriter(rootgamepath + "\\huh.txt", true))
+            {
+                stream.WriteLine($"{DateTime.Now} - {i} км");
+            }
+            return;
         }
     }
-    public static class Actions
+    internal static class Actions
     {
-        public static void Print(string str)
+        internal static void Print(string str)
         {
             char[] array = str.ToCharArray();
             foreach (char c in array)
@@ -274,7 +304,7 @@ namespace Game
             }
             Console.WriteLine();
         }
-        public static void Print(string str, int sleeptime)
+        internal static void Print(string str, int sleeptime)
         {
             char[] array = str.ToCharArray();
             foreach (char c in array)
@@ -284,70 +314,12 @@ namespace Game
             }
             Console.WriteLine();
         }
-        public static void ClassSelection(Hero hero)
-        {
-            Serializations.SaveDirCheck();
-            if (!File.Exists("..\\..\\..\\save\\Hero.xml"))
-            {
-                Print("Выбери свой класс, путник.\n");
-                Console.WriteLine("1) Маг: его способности требуют много ума и маны, но зато наносят большой урон.\n" +
-                                  "Имеет мало здоровья, но кому оно нужно, если ты можешь кидать фаерболлы, правда?");
-                Console.WriteLine("2) Воин: ");
-                Console.WriteLine("3) Лучник: ");
-                bool parsed = int.TryParse(Console.ReadLine(), out int sel);
-                if (parsed == true)
-                {
-                    switch (sel)
-                    {
-                        case 1:
-                            hero.heroClass = 0;
-                            break;
-                        case 2:
-                            hero.heroClass = (HeroClass)1;
-                            break;
-                        case 3:
-                            hero.heroClass = (HeroClass)2;
-                            break;
-                    }
-                }
-                else
-                {
-                    Console.Clear();
-                    Print("Пиши не гадости, а циферку");
-                }
-            }
-        }
-        public static void ApplyItem(this Item item, Hero hero, List<Spell> spells)
-        {
-            hero.money -= item.cost;
-            item.bought = true;
-            if (item.isusable) // 1 штука
-            {
-                hero.food = true;
-            }
-            if (item.isaspell) // 2 штуки
-            {
-                foreach (Spell spell in spells)
-                {
-                    if (item.id == spell.id && ((hero.heroClass == spell.heroClass) | spell.anyclass))
-                    {
-                        spell.unlocked = true;
-                        return;
-                    }
-                }
-            }
-            if (item.isaweapon) // 1 штука....
-            {
-                hero.atk += 5;
-            }
-            return;
-        }
-        public static void CallVid()
+        internal static void CallVid()
         {
             Console.Clear();
             Application app = new Application();
             UserControl1 u = new UserControl1();
-            _ = app.Run(u);
+            app.Run(u);
         }
     }
 }

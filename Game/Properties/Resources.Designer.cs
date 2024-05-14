@@ -68,15 +68,5 @@ namespace Game.Properties {
                 return ResourceManager.GetStream("DDLC_Yuri_sdeath", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Byte[].
-        /// </summary>
-        internal static byte[] fingies {
-            get {
-                object obj = ResourceManager.GetObject("fingies", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
     }
 }

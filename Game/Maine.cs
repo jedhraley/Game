@@ -1,47 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Media;
 using static Game.Actions;
 using static Game.Init;
 using static Game.Misc;
 using static Game.Serializations;
 using static Program;
+using static System.IO.Directory;
 
 
 
 namespace Game
 {
-    class Maine
+    internal static class Maine
     {
+        internal static Hero hero = new Hero();
+        internal static List<Item> items = DefaultItems();
+        internal static List<Spell> spells = DefaultSpells();
+
         [STAThread]
-        public static void Main()
+        private static void Main()
         {
+            string rootgamepath = GetParent(GetParent(GetParent(GetCurrentDirectory()).FullName).FullName).FullName;
             SoundPlayer typewriter = new SoundPlayer
             {
-                SoundLocation = "..\\..\\..\\Game\\Resources\\DDLC-Yuri-sdeath.wav"
+                SoundLocation = $"{rootgamepath}\\Game\\Resources\\DDLC-Yuri-sdeath.wav"
             };
             typewriter.PlayLooping();
-            bool initflag = true;
-
-            Hero hero = new Hero();
-            List<Item> items = DefaultItems();
-            List<Spell> spells = DefaultSpells();
             ClassSelection(hero);
-            SerializeAll(initflag, hero, items, spells);
+            SerializeAll(hero, items, spells, true);
             (hero, items, spells) = Deserialize();
             MainLoop(hero, items, spells);
         }
-        public static void MainLoop(Hero hero, List<Item> items, List<Spell> spells)
+        private static void MainLoop(Hero hero, List<Item> items, List<Spell> spells)
         {
             while (hero.hp > 0)
             {
-                _consoleCtrlHandler += s => { SerializeAll(hero, items, spells); return true; };
+                _consoleCtrlHandler += _ => { SerializeAll(hero, items, spells); Environment.Exit(0x1); return false; };
                 _ = SetConsoleCtrlHandler(_consoleCtrlHandler, true);
-                Print("1) Путешествие");
-                Print("2) Магазик");
-                Print("3) Данные о тебе (доделать)");
-                Print("4) Удаление сохранения");
-                Print("5) секретные документы о которых путин не хочет чтобы вы знали");
+                Console.WriteLine("1) Путешествие");
+                Console.WriteLine("2) Магазик");
+                Console.WriteLine("3) Зайти домой");
+                Console.WriteLine("4) Удаление сохранения");
+                Console.WriteLine("5) секретные документы о которых путин не хочет чтобы вы знали");
                 bool parsed = int.TryParse(Console.ReadLine(), out int sel);
                 if (parsed == true)
                 {
@@ -52,7 +54,7 @@ namespace Game
                         case 2:
                             Shop(hero, items, spells); break;
                         case 3:
-                            Profile(hero, spells); break;
+                            Home(); break;
                         case 4:
                             DeleteSave(); return;
                         case 5:
@@ -68,11 +70,11 @@ namespace Game
                 }
             }
         }
-        public static void Battle(Enemy enemy, Hero hero, List<Spell> spells)
+        internal static void Battle(Enemy enemy, Hero hero, List<Spell> spells)
         {
             while (hero.hp > 0 && enemy.hp > 0)
             {
-                _consoleCtrlHandler += s => { SerializeAll(hero, spells); return true; };
+                _consoleCtrlHandler += _ => { SerializeAll(hero, items, spells); Environment.Exit(0x1); return false; };
                 _ = SetConsoleCtrlHandler(_consoleCtrlHandler, true);
                 Print($"У вас {hero.hp} здоровья и {hero.mp} маны. У врага {enemy.hp} здоровья.");
                 Print($"Выберите действие:\n1) Атака \n2) Заклинание \n3) Расходники \n4) уходим по ******");
@@ -95,7 +97,11 @@ namespace Game
                             Useables(enemy, hero, spells); break;
                         case 4:
                             Console.Clear();
-                            Flee(); break;
+                            if (Flee() == true)
+                            {
+                                return;
+                            }
+                            else break;
                         default:
                             Console.Clear(); break;
                     }
@@ -108,19 +114,54 @@ namespace Game
             }
             if (hero.hp > 0 & enemy.hp <= 0)
             {
-                hero.exp += enemy.maxhp * 0.1;
+                hero.exp += Math.Round(enemy.maxhp * 0.1);
                 Console.WriteLine("Враг повержен! Вы получили 5 опыта.");
             }
 
         }
-        public static void SpellSelect(Enemy enemy, Hero hero, List<Spell> spells)
+        static void Home()
         {
-            _consoleCtrlHandler += s => { SerializeAll(hero, spells); return true; };
+            Console.WriteLine("1) Посмотреться в зеркало");
+            Console.WriteLine("2) Пойти баиньки");
+            bool parsed = int.TryParse(Console.ReadLine(), out int sel);
+            if (parsed)
+            {
+                switch (sel)
+                {
+                    case 1:
+                        Profile(hero, spells); break;
+                    case 2:
+                        Sleep(hero); break;
+                }
+            }
+        }
+        static void Sleep(Hero hero)
+        {
+            _consoleCtrlHandler += _ => { SerializeAll(hero, items, spells); Environment.Exit(0x1); return false; };
+            SetConsoleCtrlHandler(_consoleCtrlHandler, true);
+            var currhp = hero.hp;
+            var currmp = hero.mp;
+            while (hero.hp < hero.maxhp | hero.mp < hero.maxmp)
+            {
+                hero.hp += 5;
+                hero.mp += 5;
+                if (hero.hp > hero.maxhp) hero.hp = hero.maxhp;
+                if (hero.mp > hero.maxmp) hero.mp = hero.maxmp;
+                Console.Clear();
+                Animations.SleepAnim();
+            }
+            Console.WriteLine($"Вы восстановили {hero.hp - currhp} здоровья и {hero.mp - currmp} маны пока спали.");
+
+        }
+        private static void SpellSelect(Enemy enemy, Hero hero, List<Spell> spells)
+        {
+            _consoleCtrlHandler += _ => { SerializeAll(hero, items, spells); Environment.Exit(0x1); return false; };
             _ = SetConsoleCtrlHandler(_consoleCtrlHandler, true);
             Print($"Ваши заклинания:\n");
-            List<Spell> list = spells;
+            List<Spell> currentspells = spells;
+            _ = currentspells.CheckSpells(hero);
             int count = 0;
-            foreach (Spell spell in list)
+            foreach (Spell spell in currentspells)
             {
                 if (spell.unlocked)
                 {
@@ -136,16 +177,12 @@ namespace Game
                     Console.WriteLine($"{count}) {spell.name} (Недоступно.)");
                     Console.ResetColor();
                 }
-                else
-                {
-                    _ = list.Remove(spell); // questionable, should remove such at init perhaps
-                }
             }
 
             bool parsed = int.TryParse(Console.ReadLine(), out int sel);
             if (parsed == true & sel >= 1 & sel <= count)
             {
-                Spellcast(enemy, hero, list, list[sel - 1]);
+                currentspells[sel - 1].Spellcast(enemy, hero);
             }
             else
             {
@@ -153,6 +190,39 @@ namespace Game
                 Print("Пиши не гадости, а циферку\n");
             }
 
+        }
+        private static void ClassSelection(Hero hero)
+        {
+            SaveDirCheck();
+            if (!File.Exists("..\\..\\..\\save\\Hero.xml"))
+            {
+                Print("Выбери свой класс, путник.\n");
+                Console.WriteLine("1) Маг: его способности требуют много ума и маны, но зато наносят большой урон.\n" +
+                                  "Имеет мало здоровья, но кому оно нужно, если ты можешь кидать фаерболлы, правда?");
+                Console.WriteLine("2) Воин: ");
+                Console.WriteLine("3) Лучник: ");
+                bool parsed = int.TryParse(Console.ReadLine(), out int sel);
+                if (parsed == true)
+                {
+                    switch (sel)
+                    {
+                        case 1:
+                            hero.heroClass = 0;
+                            break;
+                        case 2:
+                            hero.heroClass = (HeroClass)1;
+                            break;
+                        case 3:
+                            hero.heroClass = (HeroClass)2;
+                            break;
+                    }
+                }
+                else
+                {
+                    Console.Clear();
+                    Print("Пиши не гадости, а циферку");
+                }
+            }
         }
     }
 
